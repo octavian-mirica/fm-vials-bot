@@ -12,10 +12,7 @@ client.on("ready", () => {
   console.log(`Logged in as ${client.user.tag}`);
 });
 
-client.on("messageCreate", (msg) => {
-  if (msg.author.bot) return;
-  msg.reply("Hello from Vials Bot!");
-});
+client.on("messageCreate", (msg) => onMessageCreate(msg));
 
 client.login(process.env.BOT_TOKEN);
 
