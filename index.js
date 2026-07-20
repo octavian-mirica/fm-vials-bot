@@ -17,7 +17,7 @@ client.on("messageCreate", (msg) => onMessageCreate(msg));
 client.login(process.env.BOT_TOKEN);
 
 
-function onMessageCreate(mgs) {
+function onMessageCreate(msg) {
     // Ignore bot messages
     if (msg.author.bot) return;
 
