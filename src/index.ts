@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import { Client, GatewayIntentBits, Message } from 'discord.js';
+import { updateLeaderboard } from './leaderboard';
 
 const client = new Client({
   intents: [
@@ -11,9 +12,8 @@ const client = new Client({
   ],
 });
 
-client.on('ready', () => {
-  console.log(`Logged in as ${client?.user?.tag}`);
-});
+const leaderboardMessageId = '1529118070000451614';
+const leaderboardChannelId = '1528763187997184062';
 
 client.on('messageCreate', (msg) => onMessageCreate(msg));
 
@@ -40,14 +40,18 @@ async function onMessageCreate(msg: Message) {
       warning.delete().catch(() => {});
     }, 5000);
 
-    return;
+    // Valid number → get nickname or username
+    const nickname =
+      msg.member?.nickname || msg.author.globalName || msg.author.username;
+
+    await updateLeaderboard(
+      leaderboardMessageId,
+      leaderboardChannelId,
+      client,
+      nickname,
+      value,
+    );
+
+    msg.delete().catch(() => {});
   }
-
-  // Valid number → get nickname or username
-  const nickname = msg.member?.nickname || msg.author.username;
-  console.log(msg);
-
-  console.log(`User: ${nickname}, Value: ${value}`);
-
-  // Later: update leaderboard here
 }

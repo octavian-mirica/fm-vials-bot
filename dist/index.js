@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const discord_js_1 = require("discord.js");
+const leaderboard_1 = require("./leaderboard");
 const client = new discord_js_1.Client({
     intents: [
         discord_js_1.GatewayIntentBits.Guilds,
@@ -13,9 +14,8 @@ const client = new discord_js_1.Client({
         discord_js_1.GatewayIntentBits.MessageContent,
     ],
 });
-client.on('ready', () => {
-    console.log(`Logged in as ${client?.user?.tag}`);
-});
+const leaderboardMessageId = '1529118070000451614';
+const leaderboardChannelId = '1528763187997184062';
 client.on('messageCreate', (msg) => onMessageCreate(msg));
 client.login(process.env.BOT_TOKEN);
 async function onMessageCreate(msg) {
@@ -35,11 +35,9 @@ async function onMessageCreate(msg) {
         setTimeout(() => {
             warning.delete().catch(() => { });
         }, 5000);
-        return;
+        // Valid number → get nickname or username
+        const nickname = msg.member?.nickname || msg.author.globalName || msg.author.username;
+        await (0, leaderboard_1.updateLeaderboard)(leaderboardMessageId, leaderboardChannelId, client, nickname, value);
+        msg.delete().catch(() => { });
     }
-    // Valid number → get nickname or username
-    const nickname = msg.member?.nickname || msg.author.username;
-    console.log(msg);
-    console.log(`User: ${nickname}, Value: ${value}`);
-    // Later: update leaderboard here
 }
