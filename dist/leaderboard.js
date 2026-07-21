@@ -89,58 +89,33 @@ function pad(str, width) {
     return str.length >= width ? str : str + ' '.repeat(width - str.length);
 }
 function parseLeaderboard(text) {
-    const lines = text.split('\n').filter((l) => l.trim().length > 0);
+    const lines = text
+        .split('\n')
+        .map((l) => l.trim())
+        .filter((l) => l.length > 0);
     const entries = [];
     for (const line of lines) {
+        // Skip total row
         if (line.startsWith('Total'))
             continue;
-        // 1️⃣ NEW INLINE-CODE FORMAT
-        const inlineFormat = line.match(/^`(.+?)`\s+<t:(\d+):R>/);
-        if (inlineFormat) {
-            const inside = inlineFormat[1];
-            const tsSeconds = parseInt(inlineFormat[2], 10);
-            const parts = inside.match(/^(\d+)\.\s+(.*)\s+(\d+)$/);
-            if (parts) {
-                const username = parts[2].trim();
-                const value = parseInt(parts[3], 10);
-                entries.push({
-                    username,
-                    value,
-                    timestamp: tsSeconds * 1000,
-                });
-                continue;
-            }
-        }
-        // 2️⃣ OLD DISCORD FORMAT
-        const oldDiscordFormat = line.match(/^\d+\.\s+(.+?)\s+\|\s+<t:(\d+):R>\s+\|\s+(\d+)/);
-        if (oldDiscordFormat) {
-            entries.push({
-                username: oldDiscordFormat[1].trim(),
-                value: parseInt(oldDiscordFormat[3], 10),
-                timestamp: parseInt(oldDiscordFormat[2], 10) * 1000,
-            });
+        // Match ONLY the new embed format:
+        // `1. Fitz               2060`   <t:1784651316:R>
+        const match = line.match(/^`(.+?)`\s+<t:(\d+):R>/);
+        if (!match)
             continue;
-        }
-        // 3️⃣ OLD HUMAN FORMAT
-        const oldHumanFormat = line.match(/^\d+\.\s+(.+?)\s+\|\s+(.+?)\s+\|\s+(\d+)/);
-        if (oldHumanFormat) {
-            entries.push({
-                username: oldHumanFormat[1].trim(),
-                value: parseInt(oldHumanFormat[3], 10),
-                timestamp: convertAgoToTimestamp(oldHumanFormat[2].trim()),
-            });
+        const inside = match[1]; // "1. Fitz               2060"
+        const tsSeconds = parseInt(match[2], 10);
+        // Extract rank, username, value
+        const parts = inside.match(/^(\d+)\.\s+(.*?)\s+(\d+)$/);
+        if (!parts)
             continue;
-        }
-        // 4️⃣ OLD FIXED-WIDTH FORMAT
-        const fixedFormat = line.match(/^(\d+)\.\s+(.+?)\s+(\d+)\s+<t:(\d+):R>/);
-        if (fixedFormat) {
-            entries.push({
-                username: fixedFormat[2].trim(),
-                value: parseInt(fixedFormat[3], 10),
-                timestamp: parseInt(fixedFormat[4], 10) * 1000,
-            });
-            continue;
-        }
+        const username = parts[2].trim();
+        const value = parseInt(parts[3], 10);
+        entries.push({
+            username,
+            value,
+            timestamp: tsSeconds * 1000,
+        });
     }
     return entries;
 }
