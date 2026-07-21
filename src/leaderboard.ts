@@ -77,9 +77,8 @@ export async function updateLeaderboard(
   }
 
   const newText = buildLeaderboard(entries);
-  const wrapped = '```\n' + newText + '\n```';
 
-  await msg.edit(wrapped);
+  await msg.edit(newText);
 }
 
 function timeAgo(timestamp: number): string {

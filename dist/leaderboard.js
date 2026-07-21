@@ -67,8 +67,7 @@ async function updateLeaderboard(client, leaderboardChannelId, username, value) 
         entries.push({ username, value, timestamp: Date.now() });
     }
     const newText = buildLeaderboard(entries);
-    const wrapped = '```\n' + newText + '\n```';
-    await msg.edit(wrapped);
+    await msg.edit(newText);
 }
 function timeAgo(timestamp) {
     const diffMs = Date.now() - timestamp;
