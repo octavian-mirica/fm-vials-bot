@@ -112,19 +112,38 @@ function parseLeaderboard(text: string): LeaderboardEntry[] {
   const entries: LeaderboardEntry[] = [];
 
   for (const line of lines) {
-    const match = line.match(/^\d+\.\s+(.+?)\s+\|\s+<t:(\d+):R>\s+\|\s+(\d+)/);
+    // New format: <t:TIMESTAMP:R>
+    const newFormat = line.match(
+      /^\d+\.\s+(.+?)\s+\|\s+<t:(\d+):R>\s+\|\s+(\d+)/,
+    );
+    if (newFormat) {
+      const username = newFormat[1].trim();
+      const tsSeconds = parseInt(newFormat[2], 10);
+      const value = parseInt(newFormat[3], 10);
 
-    if (!match) continue;
+      entries.push({
+        username,
+        value,
+        timestamp: tsSeconds * 1000,
+      });
+      continue;
+    }
 
-    const username = match[1].trim();
-    const timestampSeconds = parseInt(match[2], 10);
-    const value = parseInt(match[3], 10);
+    // Old format: "5m ago", "just now", etc.
+    const oldFormat = line.match(/^\d+\.\s+(.+?)\s+\|\s+(.+?)\s+\|\s+(\d+)/);
+    if (oldFormat) {
+      const username = oldFormat[1].trim();
+      const agoString = oldFormat[2].trim();
+      const value = parseInt(oldFormat[3], 10);
 
-    entries.push({
-      username,
-      value,
-      timestamp: timestampSeconds * 1000,
-    });
+      const timestamp = convertAgoToTimestamp(agoString);
+
+      entries.push({
+        username,
+        value,
+        timestamp,
+      });
+    }
   }
 
   return entries;
