@@ -146,28 +146,37 @@ function buildLeaderboard(entries) {
     const sorted = [...entries].sort((a, b) => b.value - a.value);
     let totalValue = 0;
     const lines = [];
-    // Build rows
+    // Build player rows
     sorted.forEach((entry, index) => {
         totalValue += entry.value;
         const rank = index + 1;
+        const rankLabel = `${rank}.`; // no medals
         const name = pad(entry.username, 25);
         const ago = pad(timeAgo(entry.timestamp), 8);
-        lines.push(`${rank}. ${name} | ${ago} | ${entry.value}`);
+        lines.push(`${rankLabel} ${name} | ${ago} | ${entry.value}`);
     });
-    // Determine the exact column start for the value column
-    // We find the first row and measure where the value begins
-    let valueColumnStart = 0;
-    if (lines.length > 0) {
-        const sample = lines[0];
-        valueColumnStart = sample.indexOf('|', sample.indexOf('|') + 1) + 2;
-        // second pipe + space
+    // If no entries, return empty total
+    if (lines.length === 0) {
+        const totalName = pad('Total', 25);
+        const totalAgo = pad('0 players', 8);
+        return `${totalName} | ${totalAgo} | 0`;
     }
-    // Build TOTAL row with dynamic padding
+    // Measure name column start (after "X. ")
+    const sample = lines[0];
+    const dotIndex = sample.indexOf('.');
+    const nameColumnStart = dotIndex + 2; // ". " → 2 chars
+    // Measure value column start (second pipe + 2 spaces)
+    const secondPipeIndex = sample.indexOf('|', sample.indexOf('|') + 1);
+    const valueColumnStart = secondPipeIndex + 2;
+    // Build TOTAL row with same alignment
     const totalName = pad('Total', 25);
     const totalAgo = pad(`${sorted.length} players`, 8);
-    // Build the total row WITHOUT value first
-    let totalRow = `${totalName} | ${totalAgo} | `;
-    // Now pad spaces until the value column aligns perfectly
+    let totalRow = '';
+    // Prefix spaces to match rank prefix width
+    totalRow += ' '.repeat(nameColumnStart);
+    // Add padded name + middle column
+    totalRow += totalName + ' | ' + totalAgo + ' | ';
+    // Align value column
     const currentLength = totalRow.length;
     if (currentLength < valueColumnStart) {
         totalRow += ' '.repeat(valueColumnStart - currentLength);
