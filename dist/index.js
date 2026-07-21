@@ -47,8 +47,11 @@ async function onMessageCreate(msg) {
     // Ignore bot messages
     if (msg.author.bot)
         return;
-    // Only allow one channel
-    // if (msg.channel.id !== ALLOWED_CHANNEL) return;
+    const channel = client.channels.cache.get(leaderboardChannelId);
+    if (!channel) {
+        console.error('Leaderboard channel not found');
+        return;
+    }
     // Try to parse integer
     const value = parseInt(msg.content.trim(), 10);
     if (isNaN(value) || value < 0) {
