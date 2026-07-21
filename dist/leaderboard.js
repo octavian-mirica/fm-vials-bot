@@ -60,14 +60,19 @@ async function updateLeaderboard(client, leaderboardChannelId, username, userId,
     const embed = msg.embeds[0];
     const text = embed?.description ?? '';
     let entries = parseLeaderboard(text);
-    entries = mergeNewUser(entries, msg.author.id, username, value, Date.now());
-    const existing = entries.find((e) => e.username === username);
+    // Update or add entry by userId
+    const existing = entries.find((e) => e.userId === userId);
     if (existing) {
         existing.value = value;
         existing.timestamp = Date.now();
     }
     else {
-        entries.push({ username, value, userId, timestamp: Date.now() });
+        entries.push({
+            username: username,
+            value: value,
+            userId: userId,
+            timestamp: Date.now(),
+        });
     }
     await msg.edit({
         content: null,
@@ -84,14 +89,14 @@ function parseLeaderboard(text) {
         if (line.startsWith('Total'))
             continue;
         // Match ONLY the new embed format:
-        // `1. Fitz ... 2060 | 123456789012345678`   <t:...:R>
+        // `1. Fitz ... 2060​123456789012345678`   <t:...:R>
         const match = line.match(/^`(.+?)`\s+<t:(\d+):R>/);
         if (!match)
             continue;
         const inside = match[1];
         const tsSeconds = parseInt(match[2], 10);
-        // Extract rank, username, value, userId
-        const parts = inside.match(/^(\d+)\.\s+(.*?)\s+(\d+)\s+\|\s+(\d+)$/);
+        // Extract rank, username, value, hidden userId
+        const parts = inside.match(/^(\d+)\.\s+(.*?)\s+(\d+)\u200B(.+)$/);
         if (!parts)
             continue;
         const username = parts[2].trim();
@@ -108,8 +113,8 @@ function parseLeaderboard(text) {
 }
 function buildLeaderboardEmbed(entries) {
     const sorted = [...entries].sort((a, b) => b.value - a.value);
-    const USER_WIDTH = 32;
-    const VALUE_WIDTH = 8;
+    const USER_WIDTH = 24;
+    const VALUE_WIDTH = 6;
     let totalValue = 0;
     const rows = [];
     for (let i = 0; i < sorted.length; i++) {
@@ -124,33 +129,15 @@ function buildLeaderboardEmbed(entries) {
         const valueCol = String(entry.value).padStart(VALUE_WIDTH, ' ');
         const ts = Math.floor(entry.timestamp / 1000);
         const ago = `<t:${ts}:R>`;
-        // Hidden userId inside the inline code block
-        rows.push(`\`${userCol} ${valueCol} | ${entry.userId}\`   ${ago}`);
+        // Hidden userId using zero-width space
+        rows.push(`\`${userCol} ${valueCol}\u200B${entry.userId}\`   ${ago}`);
     }
     const totalUser = 'Total'.padEnd(USER_WIDTH, ' ');
     const totalVal = String(totalValue).padStart(VALUE_WIDTH, ' ');
     rows.push('');
-    rows.push(`\`${totalUser} ${totalVal} | total\`   ${sorted.length} players`);
+    rows.push(`\`${totalUser} ${totalVal}\u200Btotal\`   ${sorted.length} players`);
     return new discord_js_1.EmbedBuilder()
         .setColor(0x00aeef)
         .setTitle('Leaderboard')
         .setDescription(rows.join('\n'));
-}
-function mergeNewUser(entries, newUserId, newUsername, newValue, newTimestamp) {
-    // 1. Check if any existing username starts with the new username
-    const duplicates = entries.filter((e) => e.username.startsWith(newUsername));
-    // 2. Remove duplicates
-    for (const dup of duplicates) {
-        const index = entries.indexOf(dup);
-        if (index !== -1)
-            entries.splice(index, 1);
-    }
-    // 3. Add new entry using userId
-    entries.push({
-        username: newUsername,
-        value: newValue,
-        userId: newUserId,
-        timestamp: newTimestamp,
-    });
-    return entries;
 }
