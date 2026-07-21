@@ -116,22 +116,28 @@ function parseLeaderboard(text: string): LeaderboardEntry[] {
     if (line.startsWith('Total')) continue;
 
     //
-    // 1️⃣ NEW FORMAT (no separators, fixed width)
+    // 1️⃣ NEW INLINE-CODE FORMAT (embed)
     // Example:
-    // 1. Fitz                 2060      <t:1721586000:R>
+    // `1. Fitz               2060`   <t:1784651316:R>
     //
-    const newFormat = line.match(/^(\d+)\.\s+(.+?)\s+(\d+)\s+<t:(\d+):R>/);
-    if (newFormat) {
-      const username = newFormat[2].trim();
-      const value = parseInt(newFormat[3], 10);
-      const tsSeconds = parseInt(newFormat[4], 10);
+    const inlineFormat = line.match(/^`(.+?)`\s+<t:(\d+):R>/);
+    if (inlineFormat) {
+      const inside = inlineFormat[1]; // "1. Fitz               2060"
+      const tsSeconds = parseInt(inlineFormat[2], 10);
 
-      entries.push({
-        username,
-        value,
-        timestamp: tsSeconds * 1000,
-      });
-      continue;
+      // Extract rank, username, value
+      const parts = inside.match(/^(\d+)\.\s+(.*?)\s+(\d+)$/);
+      if (parts) {
+        const username = parts[2].trim();
+        const value = parseInt(parts[3], 10);
+
+        entries.push({
+          username,
+          value,
+          timestamp: tsSeconds * 1000,
+        });
+        continue;
+      }
     }
 
     //
@@ -156,7 +162,7 @@ function parseLeaderboard(text: string): LeaderboardEntry[] {
     }
 
     //
-    // 3️⃣ OLD FORMAT (human timeAgo)
+    // 3️⃣ OLD HUMAN TIMEAGO FORMAT
     // Example:
     // 1. Fitz | 5m ago | 2060
     //
@@ -174,6 +180,25 @@ function parseLeaderboard(text: string): LeaderboardEntry[] {
         username,
         value,
         timestamp,
+      });
+      continue;
+    }
+
+    //
+    // 4️⃣ OLD FIXED-WIDTH FORMAT (no separators)
+    // Example:
+    // 1. Fitz                 2060      <t:1721586000:R>
+    //
+    const fixedFormat = line.match(/^(\d+)\.\s+(.+?)\s+(\d+)\s+<t:(\d+):R>/);
+    if (fixedFormat) {
+      const username = fixedFormat[2].trim();
+      const value = parseInt(fixedFormat[3], 10);
+      const tsSeconds = parseInt(fixedFormat[4], 10);
+
+      entries.push({
+        username,
+        value,
+        timestamp: tsSeconds * 1000,
       });
       continue;
     }
@@ -270,20 +295,18 @@ function buildLeaderboardEmbed(entries: LeaderboardEntry[]): EmbedBuilder {
     const discordTs = Math.floor(entry.timestamp / 1000);
     const ago = `<t:${discordTs}:R>`;
 
-    rows.push(`${userCol} ${valueCol}   ${ago}`);
+    // Inline code block for alignment
+    rows.push(`\`${userCol} ${valueCol}\`   ${ago}`);
   });
 
   rows.push('');
   rows.push(
-    `Total`.padEnd(USER_WIDTH, ' ') +
-      String(totalValue).padStart(VALUE_WIDTH, ' ') +
-      `   ${sorted.length} players`,
+    `\`Total`.padEnd(USER_WIDTH + 1, ' ') +
+      `${String(totalValue).padStart(VALUE_WIDTH, ' ')}\`   ${sorted.length} players`,
   );
-
-  const description = rows.join('\n'); // NO CODE BLOCK
 
   return new EmbedBuilder()
     .setColor(0x00aeef)
     .setTitle('Leaderboard')
-    .setDescription(description);
+    .setDescription(rows.join('\n'));
 }
