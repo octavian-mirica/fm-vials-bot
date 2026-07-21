@@ -14,7 +14,7 @@ const client = new discord_js_1.Client({
         discord_js_1.GatewayIntentBits.MessageContent,
     ],
 });
-const leaderboardMessageId = '1529118070000451614';
+const leaderboardMessageId = '1528767244191141949';
 const leaderboardChannelId = '1528763187997184062';
 client.on('messageCreate', (msg) => onMessageCreate(msg));
 client.login(process.env.BOT_TOKEN);
