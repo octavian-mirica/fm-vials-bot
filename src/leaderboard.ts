@@ -82,24 +82,6 @@ export async function updateLeaderboard(
   });
 }
 
-function timeAgo(timestamp: number): string {
-  const diffMs = Date.now() - timestamp;
-  const diffMin = Math.floor(diffMs / 60000);
-
-  if (diffMin < 1) return 'just now';
-  if (diffMin < 60) return `${diffMin}m ago`;
-
-  const diffHours = Math.floor(diffMin / 60);
-  if (diffHours < 24) return `${diffHours}h ago`;
-
-  const diffDays = Math.floor(diffHours / 24);
-  return `${diffDays}d ago`;
-}
-
-function pad(str: string, width: number): string {
-  return str.length >= width ? str : str + ' '.repeat(width - str.length);
-}
-
 interface LeaderboardEntry {
   username: string;
   value: number;
@@ -143,69 +125,6 @@ function parseLeaderboard(text: string): LeaderboardEntry[] {
   return entries;
 }
 
-function convertAgoToTimestamp(ago: string): number {
-  const now = Date.now();
-
-  if (ago === 'just now') return now;
-
-  const match = ago.match(/^(\d+)([mhd]) ago$/);
-  if (!match) return now;
-
-  const amount = parseInt(match[1], 10);
-  const unit = match[2];
-
-  if (unit === 'm') return now - amount * 60000;
-  if (unit === 'h') return now - amount * 3600000;
-  if (unit === 'd') return now - amount * 86400000;
-
-  return now;
-}
-
-const USER_WIDTH = 32; // index + username
-const VALUE_WIDTH = 10; // score
-
-function buildLeaderboard(entries: LeaderboardEntry[]): string {
-  const sorted = [...entries].sort((a, b) => b.value - a.value);
-
-  let totalValue = 0;
-  const lines: string[] = [];
-
-  sorted.forEach((entry, index) => {
-    totalValue += entry.value;
-
-    const rank = `${index + 1}.`;
-    let userCol = `${rank} ${entry.username}`;
-
-    // truncate if too long
-    if (userCol.length > USER_WIDTH) {
-      userCol = userCol.slice(0, USER_WIDTH);
-    }
-    userCol = userCol.padEnd(USER_WIDTH, ' ');
-
-    const valueCol = String(entry.value).padStart(VALUE_WIDTH, ' ');
-
-    const discordTs = Math.floor(entry.timestamp / 1000);
-    const ago = `<t:${discordTs}:R>`;
-
-    lines.push(`${userCol} ${valueCol}   ${ago}`);
-  });
-
-  // total row
-  let totalUser = 'Total';
-  if (totalUser.length > USER_WIDTH) {
-    totalUser = totalUser.slice(0, USER_WIDTH);
-  }
-  totalUser = totalUser.padEnd(USER_WIDTH, ' ');
-
-  const totalVal = String(totalValue).padStart(VALUE_WIDTH, ' ');
-  const totalAgo = `${sorted.length} players`;
-
-  lines.push('');
-  lines.push(`${totalUser} ${totalVal}   ${totalAgo}`);
-
-  return lines.join('\n');
-}
-
 function buildLeaderboardEmbed(entries: LeaderboardEntry[]): EmbedBuilder {
   const sorted = [...entries].sort((a, b) => b.value - a.value);
 
@@ -215,10 +134,11 @@ function buildLeaderboardEmbed(entries: LeaderboardEntry[]): EmbedBuilder {
   let totalValue = 0;
   const rows: string[] = [];
 
-  sorted.forEach((entry, index) => {
+  for (let i = 0; i < sorted.length; i++) {
+    const entry = sorted[i];
     totalValue += entry.value;
 
-    const rank = `${index + 1}.`;
+    const rank = `${i + 1}.`;
     let userCol = `${rank} ${entry.username}`;
 
     if (userCol.length > USER_WIDTH) {
@@ -228,18 +148,17 @@ function buildLeaderboardEmbed(entries: LeaderboardEntry[]): EmbedBuilder {
 
     const valueCol = String(entry.value).padStart(VALUE_WIDTH, ' ');
 
-    const discordTs = Math.floor(entry.timestamp / 1000);
-    const ago = `<t:${discordTs}:R>`;
+    const ts = Math.floor(entry.timestamp / 1000);
+    const ago = `<t:${ts}:R>`;
 
-    // Inline code block for alignment
     rows.push(`\`${userCol} ${valueCol}\`   ${ago}`);
-  });
+  }
 
+  // Total row
+  const totalUser = 'Total'.padEnd(USER_WIDTH, ' ');
+  const totalVal = String(totalValue).padStart(VALUE_WIDTH, ' ');
   rows.push('');
-  rows.push(
-    `\`Total`.padEnd(USER_WIDTH + 1, ' ') +
-      `${String(totalValue).padStart(VALUE_WIDTH, ' ')}\`   ${sorted.length} players`,
-  );
+  rows.push(`\`${totalUser} ${totalVal}\`   ${sorted.length} players`);
 
   return new EmbedBuilder()
     .setColor(0x00aeef)
