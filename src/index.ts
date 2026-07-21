@@ -45,9 +45,9 @@ async function onMessageCreate(msg: Message) {
       msg.member?.nickname || msg.author.globalName || msg.author.username;
 
     await updateLeaderboard(
-      leaderboardMessageId,
-      leaderboardChannelId,
       client,
+      leaderboardChannelId,
+      leaderboardMessageId,
       nickname,
       value,
     );

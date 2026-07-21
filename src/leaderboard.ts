@@ -1,9 +1,9 @@
 import { Client, TextChannel } from 'discord.js';
 
 export async function updateLeaderboard(
-  leaderboardMessageId: string,
-  leaderboardChannelId: string,
   client: Client,
+  leaderboardChannelId: string,
+  leaderboardMessageId: string,
   username: string,
   value: number,
 ): Promise<void> {
@@ -15,18 +15,20 @@ export async function updateLeaderboard(
     return;
   }
 
-  let entries: LeaderboardEntry[] = [];
-
-  // Try to fetch existing leaderboard message
-  if (leaderboardMessageId) {
-    try {
-      const msg = await channel.messages.fetch(leaderboardMessageId);
-      const rawText = msg.content.replace(/```/g, '').trim();
-      entries = parseLeaderboard(rawText);
-    } catch {
-      console.warn('Leaderboard message not found, creating new one.');
-    }
+  // Fetch the existing leaderboard message
+  let msg;
+  try {
+    msg = await channel.messages.fetch(leaderboardMessageId);
+  } catch {
+    console.error('Leaderboard message not found, cannot update.');
+    return;
   }
+
+  // Extract raw text (remove ``` wrapper)
+  const rawText = msg.content.replace(/```/g, '').trim();
+
+  // Parse existing leaderboard
+  let entries = parseLeaderboard(rawText);
 
   // Update or insert user
   const existing = entries.find((e) => e.username === username);
@@ -42,23 +44,11 @@ export async function updateLeaderboard(
   }
 
   // Build new leaderboard text
-  const text = buildLeaderboard(entries);
-  const wrapped = '```\n' + text + '\n```';
+  const newText = buildLeaderboard(entries);
+  const wrapped = '```\n' + newText + '\n```';
 
-  // Update existing message
-  if (leaderboardMessageId) {
-    try {
-      const msg = await channel.messages.fetch(leaderboardMessageId);
-      await msg.edit(wrapped);
-      return;
-    } catch {
-      console.warn('Failed to update leaderboard, creating new one.');
-    }
-  }
-
-  // Create new message
-  const newMsg = await channel.send(wrapped);
-  leaderboardMessageId = newMsg.id;
+  // Edit the SAME message
+  await msg.edit(wrapped);
 }
 
 function timeAgo(timestamp: number): string {
@@ -90,22 +80,21 @@ function parseLeaderboard(text: string): LeaderboardEntry[] {
   const entries: LeaderboardEntry[] = [];
 
   for (const line of lines) {
-    // Skip empty lines and total line
     if (!line || line.startsWith('Total')) continue;
 
-    // Example line:
     // 1. Octavian                   | 5m ago | 150
-
     const match = line.match(/^\d+\.\s+(.+?)\s+\|\s+(.+?)\s+\|\s+(\d+)$/);
     if (!match) continue;
 
     const [, username, ago, valueStr] = match;
     const value = parseInt(valueStr, 10);
-
-    // Convert "5m ago" back into a timestamp
     const timestamp = convertAgoToTimestamp(ago);
 
-    entries.push({ username: username.trim(), value, timestamp });
+    entries.push({
+      username: username.trim(),
+      value,
+      timestamp,
+    });
   }
 
   return entries;
