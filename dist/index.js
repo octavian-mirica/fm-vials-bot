@@ -37,7 +37,13 @@ async function onMessageCreate(msg) {
         }, 5000);
         // Valid number → get nickname or username
         const nickname = msg.member?.nickname || msg.author.globalName || msg.author.username;
+        // Always delete the user message
+        try {
+            await msg.delete();
+        }
+        catch (err) {
+            console.warn('Could not delete user message:', err);
+        }
         await (0, leaderboard_1.updateLeaderboard)(client, leaderboardChannelId, leaderboardMessageId, nickname, value);
-        msg.delete().catch(() => { });
     }
 }
