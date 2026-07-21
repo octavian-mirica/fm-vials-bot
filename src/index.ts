@@ -44,6 +44,13 @@ async function onMessageCreate(msg: Message) {
     const nickname =
       msg.member?.nickname || msg.author.globalName || msg.author.username;
 
+    // Always delete the user message
+    try {
+      await msg.delete();
+    } catch (err) {
+      console.warn('Could not delete user message:', err);
+    }
+
     await updateLeaderboard(
       client,
       leaderboardChannelId,
@@ -51,7 +58,5 @@ async function onMessageCreate(msg: Message) {
       nickname,
       value,
     );
-
-    msg.delete().catch(() => {});
   }
 }
