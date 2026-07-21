@@ -76,7 +76,8 @@ export async function updateLeaderboard(
     entries.push({ username, value, timestamp: Date.now() });
   }
 
-  await msg.edit({ embeds: [buildLeaderboardEmbed(entries)] });
+  const embed = buildLeaderboardEmbed(entries);
+  await msg.edit({ content: null, embeds: [embed] });
 }
 
 function timeAgo(timestamp: number): string {
@@ -277,7 +278,7 @@ function buildLeaderboardEmbed(entries: LeaderboardEntry[]): EmbedBuilder {
       `   ${sorted.length} players`,
   );
 
-  const description = '```\n' + rows.join('\n') + '\n```';
+  const description = rows.join('\n');
 
   return new EmbedBuilder()
     .setColor(0x00aeef)
