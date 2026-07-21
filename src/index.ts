@@ -1,7 +1,13 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import { Client, GatewayIntentBits, Message, TextChannel } from 'discord.js';
+import {
+  Client,
+  Events,
+  GatewayIntentBits,
+  Message,
+  TextChannel,
+} from 'discord.js';
 import {
   loadLeaderboardId,
   saveLeaderboardId,
@@ -19,7 +25,7 @@ const client = new Client({
 // const leaderboardChannelId = '1528763187997184062';
 const leaderboardChannelId = '1529132076568416286';
 
-client.once('ready', async () => {
+client.once(Events.ClientReady, async () => {
   console.log(`Logged in as ${client.user?.tag}`);
 
   const channel = client.channels.cache.get(
@@ -52,13 +58,15 @@ client.once('ready', async () => {
   console.log('New leaderboard message created and stored.');
 });
 
-client.on('messageCreate', (msg) => onMessageCreate(msg));
+client.on(Events.MessageCreate, (msg) => onMessageCreate(msg));
 
 client.login(process.env.BOT_TOKEN);
 
 async function onMessageCreate(msg: Message) {
   // Ignore bot messages
   if (msg.author.bot) return;
+
+  if (msg.channel.id !== leaderboardChannelId) return;
 
   const channel = client.channels.cache.get(
     leaderboardChannelId,

@@ -16,7 +16,7 @@ const client = new discord_js_1.Client({
 });
 // const leaderboardChannelId = '1528763187997184062';
 const leaderboardChannelId = '1529132076568416286';
-client.once('ready', async () => {
+client.once(discord_js_1.Events.ClientReady, async () => {
     console.log(`Logged in as ${client.user?.tag}`);
     const channel = client.channels.cache.get(leaderboardChannelId);
     if (!channel) {
@@ -41,11 +41,13 @@ client.once('ready', async () => {
     (0, leaderboard_1.saveLeaderboardId)(msg.id);
     console.log('New leaderboard message created and stored.');
 });
-client.on('messageCreate', (msg) => onMessageCreate(msg));
+client.on(discord_js_1.Events.MessageCreate, (msg) => onMessageCreate(msg));
 client.login(process.env.BOT_TOKEN);
 async function onMessageCreate(msg) {
     // Ignore bot messages
     if (msg.author.bot)
+        return;
+    if (msg.channel.id !== leaderboardChannelId)
         return;
     const channel = client.channels.cache.get(leaderboardChannelId);
     if (!channel) {
