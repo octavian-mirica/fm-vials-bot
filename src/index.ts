@@ -32,7 +32,7 @@ async function onMessageCreate(msg: Message) {
   if (isNaN(value) || value < 0) {
     // Not a number → send warning
     const warning = await msg.reply({
-      content: '⚠️ Please enter a valid number (positive integer).',
+      content: '⚠️ Please enter a valid number (> 0).',
     });
 
     // Delete warning after 5 seconds
