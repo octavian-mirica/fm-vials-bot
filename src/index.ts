@@ -16,7 +16,8 @@ const client = new Client({
   ],
 });
 
-const leaderboardChannelId = '1528763187997184062';
+// const leaderboardChannelId = '1528763187997184062';
+const leaderboardChannelId = '1529132076568416286';
 
 client.once('ready', async () => {
   console.log(`Logged in as ${client.user?.tag}`);
