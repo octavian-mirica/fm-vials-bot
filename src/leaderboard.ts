@@ -133,8 +133,8 @@ function parseLeaderboard(text: string): LeaderboardEntry[] {
 function buildLeaderboardEmbed(entries: LeaderboardEntry[]): EmbedBuilder {
   const sorted = [...entries].sort((a, b) => b.value - a.value);
 
-  const USER_WIDTH = 40;
-  const VALUE_WIDTH = 12;
+  const USER_WIDTH = 32;
+  const VALUE_WIDTH = 8;
 
   let totalValue = 0;
   const rows: string[] = [];
