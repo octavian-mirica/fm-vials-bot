@@ -42,6 +42,7 @@ async function onMessageCreate(msg) {
 
   // Valid number → get nickname or username
   const nickname = msg.member?.nickname || msg.author.username;
+  console.log(msg);
 
   console.log(`User: ${nickname}, Value: ${value}`);
 
