@@ -111,14 +111,19 @@ function parseLeaderboard(text: string): LeaderboardEntry[] {
   const entries: LeaderboardEntry[] = [];
 
   for (const line of lines) {
-    // New format: <t:TIMESTAMP:R>
-    const newFormat = line.match(
-      /^\d+\.\s+(.+?)\s+\|\s+<t:(\d+):R>\s+\|\s+(\d+)/,
-    );
+    // Skip total row
+    if (line.startsWith('Total')) continue;
+
+    //
+    // 1️⃣ NEW FORMAT (no separators, fixed width)
+    // Example:
+    // 1. Fitz                 2060      <t:1721586000:R>
+    //
+    const newFormat = line.match(/^(\d+)\.\s+(.+?)\s+(\d+)\s+<t:(\d+):R>/);
     if (newFormat) {
-      const username = newFormat[1].trim();
-      const tsSeconds = parseInt(newFormat[2], 10);
+      const username = newFormat[2].trim();
       const value = parseInt(newFormat[3], 10);
+      const tsSeconds = parseInt(newFormat[4], 10);
 
       entries.push({
         username,
@@ -128,12 +133,39 @@ function parseLeaderboard(text: string): LeaderboardEntry[] {
       continue;
     }
 
-    // Old format: "5m ago", "just now", etc.
-    const oldFormat = line.match(/^\d+\.\s+(.+?)\s+\|\s+(.+?)\s+\|\s+(\d+)/);
-    if (oldFormat) {
-      const username = oldFormat[1].trim();
-      const agoString = oldFormat[2].trim();
-      const value = parseInt(oldFormat[3], 10);
+    //
+    // 2️⃣ OLD FORMAT (Discord timestamp inside separators)
+    // Example:
+    // 1. Fitz | <t:1721586000:R> | 2060
+    //
+    const oldDiscordFormat = line.match(
+      /^\d+\.\s+(.+?)\s+\|\s+<t:(\d+):R>\s+\|\s+(\d+)/,
+    );
+    if (oldDiscordFormat) {
+      const username = oldDiscordFormat[1].trim();
+      const tsSeconds = parseInt(oldDiscordFormat[2], 10);
+      const value = parseInt(oldDiscordFormat[3], 10);
+
+      entries.push({
+        username,
+        value,
+        timestamp: tsSeconds * 1000,
+      });
+      continue;
+    }
+
+    //
+    // 3️⃣ OLD FORMAT (human timeAgo)
+    // Example:
+    // 1. Fitz | 5m ago | 2060
+    //
+    const oldHumanFormat = line.match(
+      /^\d+\.\s+(.+?)\s+\|\s+(.+?)\s+\|\s+(\d+)/,
+    );
+    if (oldHumanFormat) {
+      const username = oldHumanFormat[1].trim();
+      const agoString = oldHumanFormat[2].trim();
+      const value = parseInt(oldHumanFormat[3], 10);
 
       const timestamp = convertAgoToTimestamp(agoString);
 
@@ -142,6 +174,7 @@ function parseLeaderboard(text: string): LeaderboardEntry[] {
         value,
         timestamp,
       });
+      continue;
     }
   }
 
@@ -172,55 +205,29 @@ function buildLeaderboard(entries: LeaderboardEntry[]): string {
   let totalValue = 0;
   const lines: string[] = [];
 
-  // Build player rows
+  const USER_WIDTH = 26; // index + username padded
+  const VALUE_WIDTH = 6; // score padded
+
   sorted.forEach((entry, index) => {
     totalValue += entry.value;
 
-    const rank = index + 1;
-    const rankLabel = `${rank}.`;
+    const rank = `${index + 1}.`;
+    const user = `${rank} ${entry.username}`.padEnd(USER_WIDTH, ' ');
+    const value = String(entry.value).padEnd(VALUE_WIDTH, ' ');
 
-    const name = pad(entry.username, 25);
-
-    // Discord relative timestamp
     const discordTs = Math.floor(entry.timestamp / 1000);
     const ago = `<t:${discordTs}:R>`;
 
-    lines.push(`${rankLabel} ${name} | ${ago} | ${entry.value}`);
+    lines.push(`${user}${value}   ${ago}`);
   });
 
-  if (lines.length === 0) {
-    return `Total                     | 0 players | 0`;
-  }
-
-  // Measure name column start (after "X. ")
-  const sample = lines[0];
-  const dotIndex = sample.indexOf('.');
-  const nameColumnStart = dotIndex + 2;
-
-  // Measure value column start (second pipe + 2 spaces)
-  const secondPipeIndex = sample.indexOf('|', sample.indexOf('|') + 1);
-  const valueColumnStart = secondPipeIndex + 2;
-
-  // Build TOTAL row
-  const totalName = pad('Total', 25);
-  const totalAgo = pad(`${sorted.length} players`, 8);
-
-  let totalRow = '';
-
-  // Prefix spaces to match rank prefix width
-  totalRow += ' '.repeat(nameColumnStart);
-
-  totalRow += totalName + ' | ' + totalAgo + ' | ';
-
-  const currentLength = totalRow.length;
-  if (currentLength < valueColumnStart) {
-    totalRow += ' '.repeat(valueColumnStart - currentLength);
-  }
-
-  totalRow += totalValue;
+  // Total row
+  const totalUser = 'Total'.padEnd(USER_WIDTH, ' ');
+  const totalVal = String(totalValue).padEnd(VALUE_WIDTH, ' ');
+  const totalAgo = `${sorted.length} players`;
 
   lines.push('');
-  lines.push(totalRow);
+  lines.push(`${totalUser}${totalVal}   ${totalAgo}`);
 
   return lines.join('\n');
 }
