@@ -65,8 +65,9 @@ export async function updateLeaderboard(
     return;
   }
 
-  const rawText = msg.content.replace(/```/g, '').trim();
-  let entries = parseLeaderboard(rawText);
+  const embed = msg.embeds[0];
+  const text = embed?.description ?? '';
+  let entries = parseLeaderboard(text);
 
   const existing = entries.find((e) => e.username === username);
   if (existing) {
@@ -97,18 +98,14 @@ function parseLeaderboard(text: string): LeaderboardEntry[] {
   const entries: LeaderboardEntry[] = [];
 
   for (const line of lines) {
-    // Skip total row
     if (line.startsWith('Total')) continue;
 
-    // Match ONLY the new embed format:
-    // `1. Fitz               2060`   <t:1784651316:R>
     const match = line.match(/^`(.+?)`\s+<t:(\d+):R>/);
     if (!match) continue;
 
-    const inside = match[1]; // "1. Fitz               2060"
+    const inside = match[1];
     const tsSeconds = parseInt(match[2], 10);
 
-    // Extract rank, username, value
     const parts = inside.match(/^(\d+)\.\s+(.*?)\s+(\d+)$/);
     if (!parts) continue;
 
@@ -154,7 +151,6 @@ function buildLeaderboardEmbed(entries: LeaderboardEntry[]): EmbedBuilder {
     rows.push(`\`${userCol} ${valueCol}\`   ${ago}`);
   }
 
-  // Total row
   const totalUser = 'Total'.padEnd(USER_WIDTH, ' ');
   const totalVal = String(totalValue).padStart(VALUE_WIDTH, ' ');
   rows.push('');
