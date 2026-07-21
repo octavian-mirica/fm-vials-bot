@@ -72,5 +72,5 @@ async function onMessageCreate(msg) {
     setTimeout(() => {
         msg.delete().catch(() => { });
     }, 5000);
-    await (0, leaderboard_1.updateLeaderboard)(client, leaderboardChannelId, nickname, msg.author.id, value);
+    await (0, leaderboard_1.updateLeaderboard)(client, leaderboardChannelId, nickname, value);
 }

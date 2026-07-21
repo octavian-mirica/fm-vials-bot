@@ -100,11 +100,5 @@ async function onMessageCreate(msg: Message) {
     msg.delete().catch(() => {});
   }, 5000);
 
-  await updateLeaderboard(
-    client,
-    leaderboardChannelId,
-    nickname,
-    msg.author.id,
-    value,
-  );
+  await updateLeaderboard(client, leaderboardChannelId, nickname, value);
 }
