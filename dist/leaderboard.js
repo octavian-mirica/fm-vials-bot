@@ -56,15 +56,23 @@ function pad(str, width) {
     return str.length >= width ? str : str + ' '.repeat(width - str.length);
 }
 function parseLeaderboard(text) {
-    const lines = text.split('\n').map((l) => l.trim());
+    const lines = text
+        .split('\n')
+        .map((l) => l.trim())
+        .filter((l) => l.length > 0);
     const entries = [];
     for (const line of lines) {
-        if (!line || line.startsWith('Total'))
+        // Skip total line
+        if (line.startsWith('Total'))
             continue;
+        // Try to match the leaderboard format
+        // Example:
         // 1. Octavian                   | 5m ago | 150
         const match = line.match(/^\d+\.\s+(.+?)\s+\|\s+(.+?)\s+\|\s+(\d+)$/);
-        if (!match)
+        if (!match) {
+            // Line does NOT match leaderboard format → ignore it
             continue;
+        }
         const [, username, ago, valueStr] = match;
         const value = parseInt(valueStr, 10);
         const timestamp = convertAgoToTimestamp(ago);

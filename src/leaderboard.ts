@@ -76,15 +76,26 @@ interface LeaderboardEntry {
 }
 
 function parseLeaderboard(text: string): LeaderboardEntry[] {
-  const lines = text.split('\n').map((l) => l.trim());
+  const lines = text
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0);
+
   const entries: LeaderboardEntry[] = [];
 
   for (const line of lines) {
-    if (!line || line.startsWith('Total')) continue;
+    // Skip total line
+    if (line.startsWith('Total')) continue;
 
+    // Try to match the leaderboard format
+    // Example:
     // 1. Octavian                   | 5m ago | 150
     const match = line.match(/^\d+\.\s+(.+?)\s+\|\s+(.+?)\s+\|\s+(\d+)$/);
-    if (!match) continue;
+
+    if (!match) {
+      // Line does NOT match leaderboard format → ignore it
+      continue;
+    }
 
     const [, username, ago, valueStr] = match;
     const value = parseInt(valueStr, 10);

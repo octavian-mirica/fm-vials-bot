@@ -38,7 +38,7 @@ async function onMessageCreate(msg: Message) {
     // Delete warning after 5 seconds
     setTimeout(() => {
       warning.delete().catch(() => {});
-    }, 5000);
+    }, 4000);
   }
 
   // Valid number → get nickname or username
@@ -46,11 +46,9 @@ async function onMessageCreate(msg: Message) {
     msg.member?.nickname || msg.author.globalName || msg.author.username;
 
   // Always delete the user message
-  try {
-    await msg.delete();
-  } catch (err) {
-    console.warn('Could not delete user message:', err);
-  }
+  setTimeout(() => {
+    msg.delete().catch(() => {});
+  }, 5000);
 
   await updateLeaderboard(
     client,
