@@ -1,12 +1,48 @@
 import { Client, TextChannel } from 'discord.js';
 
+import fs from 'fs';
+import path from 'path';
+
+// Path inside dist/
+const dataDir = path.join(__dirname, 'data');
+const filePath = path.join(dataDir, 'leaderboard.json');
+
+// Ensure data folder exists
+if (!fs.existsSync(dataDir)) {
+  fs.mkdirSync(dataDir, { recursive: true });
+}
+
+// Ensure file exists
+if (!fs.existsSync(filePath)) {
+  fs.writeFileSync(filePath, JSON.stringify({ messageId: null }, null, 2));
+}
+
+export function loadLeaderboardId(): string | null {
+  try {
+    const raw = fs.readFileSync(filePath, 'utf8');
+    const data = JSON.parse(raw);
+    return data.messageId || null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveLeaderboardId(id: string) {
+  const data = { messageId: id };
+  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+}
+
 export async function updateLeaderboard(
   client: Client,
   leaderboardChannelId: string,
-  leaderboardMessageId: string,
   username: string,
   value: number,
 ): Promise<void> {
+  if (isNaN(value) || value < 0) {
+    // Ignore invalid input
+    return;
+  }
+
   const channel = client.channels.cache.get(
     leaderboardChannelId,
   ) as TextChannel;
@@ -16,9 +52,15 @@ export async function updateLeaderboard(
   }
 
   // Fetch the existing leaderboard message
+  const messageId = loadLeaderboardId();
+  if (!messageId) {
+    console.error('Leaderboard message ID missing.');
+    return;
+  }
+
   let msg;
   try {
-    msg = await channel.messages.fetch(leaderboardMessageId);
+    msg = await channel.messages.fetch(messageId);
   } catch {
     console.error('Leaderboard message not found, cannot update.');
     return;
@@ -135,6 +177,7 @@ function buildLeaderboard(entries: LeaderboardEntry[]): string {
   let totalValue = 0;
   const lines: string[] = [];
 
+  // Build rows
   sorted.forEach((entry, index) => {
     totalValue += entry.value;
 
@@ -145,10 +188,32 @@ function buildLeaderboard(entries: LeaderboardEntry[]): string {
     lines.push(`${rank}. ${name} | ${ago} | ${entry.value}`);
   });
 
+  // Determine the exact column start for the value column
+  // We find the first row and measure where the value begins
+  let valueColumnStart = 0;
+  if (lines.length > 0) {
+    const sample = lines[0];
+    valueColumnStart = sample.indexOf('|', sample.indexOf('|') + 1) + 2;
+    // second pipe + space
+  }
+
+  // Build TOTAL row with dynamic padding
+  const totalName = pad('Total', 25);
+  const totalAgo = pad(`${sorted.length} players`, 8);
+
+  // Build the total row WITHOUT value first
+  let totalRow = `${totalName} | ${totalAgo} | `;
+
+  // Now pad spaces until the value column aligns perfectly
+  const currentLength = totalRow.length;
+  if (currentLength < valueColumnStart) {
+    totalRow += ' '.repeat(valueColumnStart - currentLength);
+  }
+
+  totalRow += totalValue;
+
   lines.push('');
-  lines.push(
-    `Total${' '.repeat(28)}| ${sorted.length} players | ${totalValue}`,
-  );
+  lines.push(totalRow);
 
   return lines.join('\n');
 }

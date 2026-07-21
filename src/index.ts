@@ -1,8 +1,12 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import { Client, GatewayIntentBits, Message } from 'discord.js';
-import { updateLeaderboard } from './leaderboard';
+import { Client, GatewayIntentBits, Message, TextChannel } from 'discord.js';
+import {
+  loadLeaderboardId,
+  saveLeaderboardId,
+  updateLeaderboard,
+} from './leaderboard';
 
 const client = new Client({
   intents: [
@@ -12,8 +16,40 @@ const client = new Client({
   ],
 });
 
-const leaderboardMessageId = '1528767244191141949';
 const leaderboardChannelId = '1528763187997184062';
+
+client.once('ready', async () => {
+  console.log(`Logged in as ${client.user?.tag}`);
+
+  const channel = client.channels.cache.get(
+    leaderboardChannelId,
+  ) as TextChannel;
+  if (!channel) {
+    console.error('Leaderboard channel not found');
+    return;
+  }
+
+  let messageId = loadLeaderboardId();
+
+  if (messageId) {
+    try {
+      await channel.messages.fetch(messageId);
+      console.log('Leaderboard message loaded.');
+      return;
+    } catch {
+      console.warn('Stored leaderboard message not found. Creating a new one.');
+    }
+  }
+
+  // Create a new leaderboard message
+  const placeholder = '```\nLeaderboard initializing...\n```';
+  const msg = await channel.send(placeholder);
+
+  // Store the ID
+  saveLeaderboardId(msg.id);
+
+  console.log('New leaderboard message created and stored.');
+});
 
 client.on('messageCreate', (msg) => onMessageCreate(msg));
 
@@ -50,11 +86,5 @@ async function onMessageCreate(msg: Message) {
     msg.delete().catch(() => {});
   }, 5000);
 
-  await updateLeaderboard(
-    client,
-    leaderboardChannelId,
-    leaderboardMessageId,
-    nickname,
-    value,
-  );
+  await updateLeaderboard(client, leaderboardChannelId, nickname, value);
 }
