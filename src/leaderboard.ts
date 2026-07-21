@@ -112,21 +112,15 @@ function parseLeaderboard(text: string): LeaderboardEntry[] {
   const entries: LeaderboardEntry[] = [];
 
   for (const line of lines) {
-    // Skip total row
     if (line.startsWith('Total')) continue;
 
-    //
-    // 1️⃣ NEW INLINE-CODE FORMAT (embed)
-    // Example:
-    // `1. Fitz               2060`   <t:1784651316:R>
-    //
+    // 1️⃣ NEW INLINE-CODE FORMAT
     const inlineFormat = line.match(/^`(.+?)`\s+<t:(\d+):R>/);
     if (inlineFormat) {
-      const inside = inlineFormat[1]; // "1. Fitz               2060"
+      const inside = inlineFormat[1];
       const tsSeconds = parseInt(inlineFormat[2], 10);
 
-      // Extract rank, username, value
-      const parts = inside.match(/^(\d+)\.\s+(.*?)\s+(\d+)$/);
+      const parts = inside.match(/^(\d+)\.\s+(.*)\s+(\d+)$/);
       if (parts) {
         const username = parts[2].trim();
         const value = parseInt(parts[3], 10);
@@ -140,65 +134,39 @@ function parseLeaderboard(text: string): LeaderboardEntry[] {
       }
     }
 
-    //
-    // 2️⃣ OLD FORMAT (Discord timestamp inside separators)
-    // Example:
-    // 1. Fitz | <t:1721586000:R> | 2060
-    //
+    // 2️⃣ OLD DISCORD FORMAT
     const oldDiscordFormat = line.match(
       /^\d+\.\s+(.+?)\s+\|\s+<t:(\d+):R>\s+\|\s+(\d+)/,
     );
     if (oldDiscordFormat) {
-      const username = oldDiscordFormat[1].trim();
-      const tsSeconds = parseInt(oldDiscordFormat[2], 10);
-      const value = parseInt(oldDiscordFormat[3], 10);
-
       entries.push({
-        username,
-        value,
-        timestamp: tsSeconds * 1000,
+        username: oldDiscordFormat[1].trim(),
+        value: parseInt(oldDiscordFormat[3], 10),
+        timestamp: parseInt(oldDiscordFormat[2], 10) * 1000,
       });
       continue;
     }
 
-    //
-    // 3️⃣ OLD HUMAN TIMEAGO FORMAT
-    // Example:
-    // 1. Fitz | 5m ago | 2060
-    //
+    // 3️⃣ OLD HUMAN FORMAT
     const oldHumanFormat = line.match(
       /^\d+\.\s+(.+?)\s+\|\s+(.+?)\s+\|\s+(\d+)/,
     );
     if (oldHumanFormat) {
-      const username = oldHumanFormat[1].trim();
-      const agoString = oldHumanFormat[2].trim();
-      const value = parseInt(oldHumanFormat[3], 10);
-
-      const timestamp = convertAgoToTimestamp(agoString);
-
       entries.push({
-        username,
-        value,
-        timestamp,
+        username: oldHumanFormat[1].trim(),
+        value: parseInt(oldHumanFormat[3], 10),
+        timestamp: convertAgoToTimestamp(oldHumanFormat[2].trim()),
       });
       continue;
     }
 
-    //
-    // 4️⃣ OLD FIXED-WIDTH FORMAT (no separators)
-    // Example:
-    // 1. Fitz                 2060      <t:1721586000:R>
-    //
+    // 4️⃣ OLD FIXED-WIDTH FORMAT
     const fixedFormat = line.match(/^(\d+)\.\s+(.+?)\s+(\d+)\s+<t:(\d+):R>/);
     if (fixedFormat) {
-      const username = fixedFormat[2].trim();
-      const value = parseInt(fixedFormat[3], 10);
-      const tsSeconds = parseInt(fixedFormat[4], 10);
-
       entries.push({
-        username,
-        value,
-        timestamp: tsSeconds * 1000,
+        username: fixedFormat[2].trim(),
+        value: parseInt(fixedFormat[3], 10),
+        timestamp: parseInt(fixedFormat[4], 10) * 1000,
       });
       continue;
     }
