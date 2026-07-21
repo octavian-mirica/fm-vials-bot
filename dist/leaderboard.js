@@ -67,8 +67,10 @@ async function updateLeaderboard(client, leaderboardChannelId, username, value) 
     else {
         entries.push({ username, value, timestamp: Date.now() });
     }
-    const embed = buildLeaderboardEmbed(entries);
-    await msg.edit({ content: null, embeds: [embed] });
+    await msg.edit({
+        content: null,
+        embeds: [buildLeaderboardEmbed(entries)],
+    });
 }
 function timeAgo(timestamp) {
     const diffMs = Date.now() - timestamp;
@@ -220,7 +222,7 @@ function buildLeaderboardEmbed(entries) {
     rows.push(`Total`.padEnd(USER_WIDTH, ' ') +
         String(totalValue).padStart(VALUE_WIDTH, ' ') +
         `   ${sorted.length} players`);
-    const description = rows.join('\n');
+    const description = rows.join('\n'); // NO CODE BLOCK
     return new discord_js_1.EmbedBuilder()
         .setColor(0x00aeef)
         .setTitle('Leaderboard')
