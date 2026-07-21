@@ -1,4 +1,4 @@
-import { Client, TextChannel } from 'discord.js';
+import { Client, EmbedBuilder, TextChannel } from 'discord.js';
 
 import fs from 'fs';
 import path from 'path';
@@ -76,9 +76,7 @@ export async function updateLeaderboard(
     entries.push({ username, value, timestamp: Date.now() });
   }
 
-  const newText = buildLeaderboard(entries);
-
-  await msg.edit(newText);
+  await msg.edit({ embeds: [buildLeaderboardEmbed(entries)] });
 }
 
 function timeAgo(timestamp: number): string {
@@ -242,4 +240,47 @@ function buildLeaderboard(entries: LeaderboardEntry[]): string {
   lines.push(`${totalUser} ${totalVal}   ${totalAgo}`);
 
   return lines.join('\n');
+}
+
+function buildLeaderboardEmbed(entries: LeaderboardEntry[]): EmbedBuilder {
+  const sorted = [...entries].sort((a, b) => b.value - a.value);
+
+  const USER_WIDTH = 20;
+  const VALUE_WIDTH = 6;
+
+  let totalValue = 0;
+  const rows: string[] = [];
+
+  sorted.forEach((entry, index) => {
+    totalValue += entry.value;
+
+    const rank = `${index + 1}.`;
+    let userCol = `${rank} ${entry.username}`;
+
+    if (userCol.length > USER_WIDTH) {
+      userCol = userCol.slice(0, USER_WIDTH);
+    }
+    userCol = userCol.padEnd(USER_WIDTH, ' ');
+
+    const valueCol = String(entry.value).padStart(VALUE_WIDTH, ' ');
+
+    const discordTs = Math.floor(entry.timestamp / 1000);
+    const ago = `<t:${discordTs}:R>`;
+
+    rows.push(`${userCol} ${valueCol}   ${ago}`);
+  });
+
+  rows.push('');
+  rows.push(
+    `Total`.padEnd(USER_WIDTH, ' ') +
+      String(totalValue).padStart(VALUE_WIDTH, ' ') +
+      `   ${sorted.length} players`,
+  );
+
+  const description = '```\n' + rows.join('\n') + '\n```';
+
+  return new EmbedBuilder()
+    .setColor(0x00aeef)
+    .setTitle('Leaderboard')
+    .setDescription(description);
 }
