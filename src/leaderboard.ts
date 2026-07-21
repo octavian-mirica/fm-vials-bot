@@ -199,35 +199,47 @@ function convertAgoToTimestamp(ago: string): number {
   return now;
 }
 
+const USER_WIDTH = 32; // index + username
+const VALUE_WIDTH = 10; // score
+
 function buildLeaderboard(entries: LeaderboardEntry[]): string {
   const sorted = [...entries].sort((a, b) => b.value - a.value);
 
   let totalValue = 0;
   const lines: string[] = [];
 
-  const USER_WIDTH = 26; // index + username padded
-  const VALUE_WIDTH = 6; // score padded
-
   sorted.forEach((entry, index) => {
     totalValue += entry.value;
 
     const rank = `${index + 1}.`;
-    const user = `${rank} ${entry.username}`.padEnd(USER_WIDTH, ' ');
-    const value = String(entry.value).padEnd(VALUE_WIDTH, ' ');
+    let userCol = `${rank} ${entry.username}`;
+
+    // truncate if too long
+    if (userCol.length > USER_WIDTH) {
+      userCol = userCol.slice(0, USER_WIDTH);
+    }
+    userCol = userCol.padEnd(USER_WIDTH, ' ');
+
+    const valueCol = String(entry.value).padStart(VALUE_WIDTH, ' ');
 
     const discordTs = Math.floor(entry.timestamp / 1000);
     const ago = `<t:${discordTs}:R>`;
 
-    lines.push(`${user}${value}   ${ago}`);
+    lines.push(`${userCol} ${valueCol}   ${ago}`);
   });
 
-  // Total row
-  const totalUser = 'Total'.padEnd(USER_WIDTH, ' ');
-  const totalVal = String(totalValue).padEnd(VALUE_WIDTH, ' ');
+  // total row
+  let totalUser = 'Total';
+  if (totalUser.length > USER_WIDTH) {
+    totalUser = totalUser.slice(0, USER_WIDTH);
+  }
+  totalUser = totalUser.padEnd(USER_WIDTH, ' ');
+
+  const totalVal = String(totalValue).padStart(VALUE_WIDTH, ' ');
   const totalAgo = `${sorted.length} players`;
 
   lines.push('');
-  lines.push(`${totalUser}${totalVal}   ${totalAgo}`);
+  lines.push(`${totalUser} ${totalVal}   ${totalAgo}`);
 
   return lines.join('\n');
 }
