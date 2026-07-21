@@ -1,5 +1,7 @@
-require('dotenv').config();
-const { Client, GatewayIntentBits } = require('discord.js');
+import dotenv from 'dotenv';
+dotenv.config();
+
+import { Client, GatewayIntentBits, Message } from 'discord.js';
 
 const client = new Client({
   intents: [
@@ -10,14 +12,14 @@ const client = new Client({
 });
 
 client.on('ready', () => {
-  console.log(`Logged in as ${client.user.tag}`);
+  console.log(`Logged in as ${client?.user?.tag}`);
 });
 
 client.on('messageCreate', (msg) => onMessageCreate(msg));
 
 client.login(process.env.BOT_TOKEN);
 
-async function onMessageCreate(msg) {
+async function onMessageCreate(msg: Message) {
   // Ignore bot messages
   if (msg.author.bot) return;
 
