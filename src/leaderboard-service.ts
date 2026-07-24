@@ -1,6 +1,26 @@
 import { Client, EmbedBuilder, Message } from 'discord.js';
 import fs from 'fs';
 import path from 'path';
+export interface Leaderboard {
+  id: string;
+  guildId: string;
+  channelId: string;
+  messageId: string;
+  entries: LeaderboardEntry[];
+}
+
+export interface LeaderboardEntry {
+  userId: string;
+  username: string;
+  value: number;
+  valuePrev: number;
+  timestamp: number;
+}
+
+export interface LeaderboardData {
+  allowedChannels: { [guildId: string]: string };
+  leaderboards: { [id: string]: Leaderboard };
+}
 
 export class LeaderboardService {
   private data: LeaderboardData = { allowedChannels: {}, leaderboards: {} };
@@ -152,25 +172,4 @@ export class LeaderboardService {
   ): string {
     return `${guildId}-${channelId}-${messageId}`;
   }
-}
-
-export interface Leaderboard {
-  id: string;
-  guildId: string;
-  channelId: string;
-  messageId: string;
-  entries: LeaderboardEntry[];
-}
-
-export interface LeaderboardEntry {
-  userId: string;
-  username: string;
-  value: number;
-  valuePrev: number;
-  timestamp: number;
-}
-
-export interface LeaderboardData {
-  allowedChannels: { [guildId: string]: string };
-  leaderboards: { [id: string]: Leaderboard };
 }
