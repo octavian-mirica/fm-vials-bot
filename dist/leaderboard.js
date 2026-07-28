@@ -79,6 +79,9 @@ function parseLeaderboard(text) {
         .map((l) => l.trim())
         .filter((l) => l.length > 0);
     const entries = [];
+    // 7 days in milliseconds
+    const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+    const cutoff = Date.now() - sevenDaysMs;
     for (const line of lines) {
         if (line.startsWith('Total'))
             continue;
@@ -87,6 +90,10 @@ function parseLeaderboard(text) {
             continue;
         const inside = match[1];
         const tsSeconds = parseInt(match[2], 10);
+        const tsMs = tsSeconds * 1000;
+        // Filter out entries older than 7 days
+        if (tsMs < cutoff)
+            continue;
         const parts = inside.match(/^(\d+)\.\s+(.*?)\s+(\d+)$/);
         if (!parts)
             continue;
@@ -95,11 +102,35 @@ function parseLeaderboard(text) {
         entries.push({
             username,
             value,
-            timestamp: tsSeconds * 1000,
+            timestamp: tsMs,
         });
     }
     return entries;
 }
+// function parseLeaderboard(text: string): LeaderboardEntry[] {
+//   const lines = text
+//     .split('\n')
+//     .map((l) => l.trim())
+//     .filter((l) => l.length > 0);
+//   const entries: LeaderboardEntry[] = [];
+//   for (const line of lines) {
+//     if (line.startsWith('Total')) continue;
+//     const match = line.match(/^`(.+?)`\s+<t:(\d+):R>/);
+//     if (!match) continue;
+//     const inside = match[1];
+//     const tsSeconds = parseInt(match[2], 10);
+//     const parts = inside.match(/^(\d+)\.\s+(.*?)\s+(\d+)$/);
+//     if (!parts) continue;
+//     const username = parts[2].trim();
+//     const value = parseInt(parts[3], 10);
+//     entries.push({
+//       username,
+//       value,
+//       timestamp: tsSeconds * 1000,
+//     });
+//   }
+//   return entries;
+// }
 function buildLeaderboardEmbed(entries) {
     const sorted = [...entries].sort((a, b) => b.value - a.value);
     const USER_WIDTH = 32;
