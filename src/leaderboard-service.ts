@@ -123,7 +123,6 @@ export class LeaderboardService {
 
     for (let i = 0; i < leaderboard.entries.length; i++) {
       const entry = leaderboard.entries[i];
-      totalValue += entry.value;
 
       const rank = `${i + 1}.`;
       let userCol = `${rank} ${entry.username}`;
