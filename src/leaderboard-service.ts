@@ -198,6 +198,8 @@ export class LeaderboardService {
 
     let leaderboard = this.data.leaderboards[id];
 
+    console.log('Get leaderboard safe: ', leaderboard.messageId, leaderboard);
+
     if (!leaderboard) {
       leaderboard = {
         id,
