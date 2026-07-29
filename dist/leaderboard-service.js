@@ -140,9 +140,8 @@ class LeaderboardService {
             };
             this.data.leaderboards[id] = leaderboard;
         }
-        const leaderboardMsg = await this.getLeaderboardMessageSafe(client, leaderboard);
+        await this.getLeaderboardMessageSafe(client, leaderboard);
         this.saveLeaderboards();
-        console.log('Leaderboard message id: ', leaderboardMsg?.id, leaderboard);
         return leaderboard;
     }
     async getLeaderboardMessageSafe(client, leaderboard) {
