@@ -166,7 +166,7 @@ function parseLeaderboard(text: string): LeaderboardEntry[] {
 function buildLeaderboardEmbed(entries: LeaderboardEntry[]): EmbedBuilder {
   const sorted = [...entries].sort((a, b) => b.value - a.value);
 
-  const USER_WIDTH = 20;
+  const USER_WIDTH = 30;
   const VALUE_WIDTH = 6;
   const GAP_WIDTH = 4; // adjust this to increase spacing
 
@@ -191,7 +191,7 @@ function buildLeaderboardEmbed(entries: LeaderboardEntry[]): EmbedBuilder {
     const ts = Math.floor(entry.timestamp / 1000);
     const ago = `<t:${ts}:R>`;
 
-    rows.push(`\`${userCol} ${valueCol}\`${gap}${ago}`);
+    rows.push(`\`${userCol} ${valueCol}\` \`${gap}\` ${ago}`
   }
 
   const totalUser = 'Total'.padEnd(USER_WIDTH, ' ');
@@ -199,10 +199,10 @@ function buildLeaderboardEmbed(entries: LeaderboardEntry[]): EmbedBuilder {
   const gap = ' '.repeat(GAP_WIDTH);
 
   rows.push('');
-  rows.push(`\`${totalUser} ${totalVal}\`${gap}${sorted.length} players`);
+  rows.push(`\`${totalUser} ${totalVal}\` \`${gap}\` ${sorted.length} players`);
 
   return new EmbedBuilder()
     .setColor(0x00aeef)
-    .setTitle('Leaderboard')
+    .setTitle('Vials Leaderboard')
     .setDescription(rows.join('\n'));
 }
