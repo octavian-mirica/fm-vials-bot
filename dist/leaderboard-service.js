@@ -160,7 +160,7 @@ class LeaderboardService {
             const newMsg = await channel.send(placeholder);
             // IMPORTANT: update the leaderboard so future renders use the new message
             leaderboard.messageId = newMsg.id;
-            return newMsg;
+            return await channel.messages.fetch(newMsg.id);
         }
     }
     getLeaderboardTotal(leaderboard) {
