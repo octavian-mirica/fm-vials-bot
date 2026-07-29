@@ -199,27 +199,22 @@ export class LeaderboardService {
 
     let leaderboard = this.data.leaderboards[id];
 
-    const leaderboardMessageId = leaderboard?.messageId || '';
-    const leaderboardMsg = await this.getLeaderboardMessageSafe(
-      client,
-      channelId,
-      leaderboardMessageId,
-    );
-
     if (!leaderboard) {
       leaderboard = {
         id,
         guildId,
         channelId,
-        messageId: leaderboardMsg?.id || '',
+        messageId: '',
         entries: [],
       };
       this.data.leaderboards[id] = leaderboard;
-      this.saveLeaderboards();
-    } else if (leaderboard.messageId !== leaderboardMsg?.id) {
-      leaderboard.messageId = leaderboardMsg?.id || '';
-      this.saveLeaderboards();
     }
+
+    const leaderboardMsg = await this.getLeaderboardMessageSafe(
+      client,
+      leaderboard,
+    );
+    this.saveLeaderboards();
 
     console.log('Leaderboard message id: ', leaderboardMsg?.id, leaderboard);
 
@@ -228,20 +223,25 @@ export class LeaderboardService {
 
   private async getLeaderboardMessageSafe(
     client: Client,
-    channelId: string,
-    leaderboardMessageId: string,
+    leaderboard: Leaderboard,
   ): Promise<Message | null> {
-    const channel = client.channels.cache.get(channelId) as TextChannel;
-    if (!channel) {
+    const channel = client.channels.cache.get(leaderboard.channelId);
+
+    if (!channel || !channel.isTextBased()) {
       return null;
     }
 
     try {
-      return await channel.messages.fetch(leaderboardMessageId);
+      return await channel.messages.fetch(leaderboard.messageId);
     } catch {
       // Create a new leaderboard message
       const placeholder = '```\nLeaderboard initializing...\n```';
-      return await channel.send(placeholder);
+      const newMsg = await (channel as TextChannel).send(placeholder);
+
+      // IMPORTANT: update the leaderboard so future renders use the new message
+      leaderboard.messageId = newMsg.id;
+
+      return newMsg;
     }
   }
 
