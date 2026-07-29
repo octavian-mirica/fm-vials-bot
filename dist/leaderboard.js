@@ -79,9 +79,6 @@ function parseLeaderboard(text) {
         .map((l) => l.trim())
         .filter((l) => l.length > 0);
     const entries = [];
-    // 7 days in milliseconds
-    const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
-    const cutoff = Date.now() - sevenDaysMs;
     for (const line of lines) {
         if (line.startsWith('Total'))
             continue;
@@ -90,10 +87,6 @@ function parseLeaderboard(text) {
             continue;
         const inside = match[1];
         const tsSeconds = parseInt(match[2], 10);
-        const tsMs = tsSeconds * 1000;
-        // Filter out entries older than 7 days
-        if (tsMs < cutoff)
-            continue;
         const parts = inside.match(/^(\d+)\.\s+(.*?)\s+(\d+)$/);
         if (!parts)
             continue;
@@ -102,40 +95,15 @@ function parseLeaderboard(text) {
         entries.push({
             username,
             value,
-            timestamp: tsMs,
+            timestamp: tsSeconds * 1000,
         });
     }
     return entries;
 }
-// function parseLeaderboard(text: string): LeaderboardEntry[] {
-//   const lines = text
-//     .split('\n')
-//     .map((l) => l.trim())
-//     .filter((l) => l.length > 0);
-//   const entries: LeaderboardEntry[] = [];
-//   for (const line of lines) {
-//     if (line.startsWith('Total')) continue;
-//     const match = line.match(/^`(.+?)`\s+<t:(\d+):R>/);
-//     if (!match) continue;
-//     const inside = match[1];
-//     const tsSeconds = parseInt(match[2], 10);
-//     const parts = inside.match(/^(\d+)\.\s+(.*?)\s+(\d+)$/);
-//     if (!parts) continue;
-//     const username = parts[2].trim();
-//     const value = parseInt(parts[3], 10);
-//     entries.push({
-//       username,
-//       value,
-//       timestamp: tsSeconds * 1000,
-//     });
-//   }
-//   return entries;
-// }
 function buildLeaderboardEmbed(entries) {
     const sorted = [...entries].sort((a, b) => b.value - a.value);
-    const USER_WIDTH = 28;
+    const USER_WIDTH = 26;
     const VALUE_WIDTH = 6;
-    const GAP_WIDTH = 4; // adjust this to increase spacing
     let totalValue = 0;
     const rows = [];
     for (let i = 0; i < sorted.length; i++) {
@@ -148,18 +116,16 @@ function buildLeaderboardEmbed(entries) {
         }
         userCol = userCol.padEnd(USER_WIDTH, ' ');
         const valueCol = String(entry.value).padStart(VALUE_WIDTH, ' ');
-        const gap = ' '.repeat(GAP_WIDTH);
         const ts = Math.floor(entry.timestamp / 1000);
         const ago = `<t:${ts}:R>`;
-        rows.push(`\`${userCol} ${valueCol}\` \`${gap}\` ${ago}`);
+        rows.push(`\`${userCol} ${valueCol}\`   ${ago}`);
     }
     const totalUser = 'Total'.padEnd(USER_WIDTH, ' ');
     const totalVal = String(totalValue).padStart(VALUE_WIDTH, ' ');
-    const gap = ' '.repeat(GAP_WIDTH);
     rows.push('');
-    rows.push(`\`${totalUser} ${totalVal}\`${gap}${sorted.length} players`);
+    rows.push(`\`${totalUser} ${totalVal}\`   ${sorted.length} players`);
     return new discord_js_1.EmbedBuilder()
         .setColor(0x00aeef)
-        .setTitle('Vials Leaderboard')
+        .setTitle('Leaderboard')
         .setDescription(rows.join('\n'));
 }
