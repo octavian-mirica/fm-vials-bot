@@ -21,7 +21,7 @@ const client = new Client({
 
 const leaderboardService = new LeaderboardService();
 
-client.on(Events.MessageCreate, (msg) => onMessageCreate(msg));
+client.on(Events.MessageCreate, async (msg) => await onMessageCreate(msg));
 
 client.login(process.env.BOT_TOKEN);
 

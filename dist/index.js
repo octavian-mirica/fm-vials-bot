@@ -15,7 +15,7 @@ const client = new discord_js_1.Client({
     ],
 });
 const leaderboardService = new leaderboard_service_1.LeaderboardService();
-client.on(discord_js_1.Events.MessageCreate, (msg) => onMessageCreate(msg));
+client.on(discord_js_1.Events.MessageCreate, async (msg) => await onMessageCreate(msg));
 client.login(process.env.BOT_TOKEN);
 async function onMessageCreate(msg) {
     await leaderboardService.updateLeaderboard(client, msg);
