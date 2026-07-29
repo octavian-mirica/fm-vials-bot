@@ -125,7 +125,7 @@ function parseLeaderboard(text: string): LeaderboardEntry[] {
 function buildLeaderboardEmbed(entries: LeaderboardEntry[]): EmbedBuilder {
   const sorted = [...entries].sort((a, b) => b.value - a.value);
 
-  const USER_WIDTH = 25;
+  const USER_WIDTH = 23;
   const VALUE_WIDTH = 6;
 
   let totalValue = 0;
@@ -158,6 +158,6 @@ function buildLeaderboardEmbed(entries: LeaderboardEntry[]): EmbedBuilder {
 
   return new EmbedBuilder()
     .setColor(0x00aeef)
-    .setTitle('Leaderboard')
+    .setTitle('Clan Vials Leaderboard')
     .setDescription(rows.join('\n'));
 }

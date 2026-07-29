@@ -102,7 +102,7 @@ function parseLeaderboard(text) {
 }
 function buildLeaderboardEmbed(entries) {
     const sorted = [...entries].sort((a, b) => b.value - a.value);
-    const USER_WIDTH = 25;
+    const USER_WIDTH = 23;
     const VALUE_WIDTH = 6;
     let totalValue = 0;
     const rows = [];
@@ -126,6 +126,6 @@ function buildLeaderboardEmbed(entries) {
     rows.push(`\`${totalUser} ${totalVal}\`   ${sorted.length} players`);
     return new discord_js_1.EmbedBuilder()
         .setColor(0x00aeef)
-        .setTitle('Leaderboard')
+        .setTitle('Clan Vials Leaderboard')
         .setDescription(rows.join('\n'));
 }
