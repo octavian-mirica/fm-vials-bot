@@ -228,20 +228,32 @@ export class LeaderboardService {
     const channel = client.channels.cache.get(leaderboard.channelId);
 
     if (!channel || !channel.isTextBased()) {
+      console.error(
+        `Channel ${leaderboard.channelId} not found or not text-based.`,
+      );
       return null;
+    }
+
+    // If we don't have a messageId yet, create the placeholder immediately
+    if (!leaderboard.messageId) {
+      const placeholder = '```\nLeaderboard initializing...\n```';
+      const newMsg = await (channel as TextChannel).send(placeholder);
+      leaderboard.messageId = newMsg.id;
+      return newMsg;
     }
 
     try {
       return await channel.messages.fetch(leaderboard.messageId);
-    } catch {
-      // Create a new leaderboard message
+    } catch (err) {
+      console.error(
+        `Failed to fetch leaderboard message ${leaderboard.messageId} in channel ${leaderboard.channelId}:`,
+        err,
+      );
+
       const placeholder = '```\nLeaderboard initializing...\n```';
       const newMsg = await (channel as TextChannel).send(placeholder);
-
-      // IMPORTANT: update the leaderboard so future renders use the new message
       leaderboard.messageId = newMsg.id;
-
-      return await channel.messages.fetch(newMsg.id);
+      return newMsg;
     }
   }
 
