@@ -21,6 +21,7 @@ class LeaderboardService {
         return this.data;
     }
     async updateLeaderboard(client, msg) {
+        console.log(msg);
         const guildId = msg.guildId || '';
         const channelId = msg.channelId;
         const userId = msg.author.id;
@@ -130,7 +131,7 @@ class LeaderboardService {
     async getLeaderboardSafe(client, guildId, channelId) {
         const id = this.leaderboardId(guildId, channelId);
         let leaderboard = this.data.leaderboards[id];
-        console.log('Get leaderboard safe: ', leaderboard.messageId, leaderboard);
+        // console.log('Get leaderboard safe: ', leaderboard.messageId, leaderboard);
         if (!leaderboard) {
             leaderboard = {
                 id,
