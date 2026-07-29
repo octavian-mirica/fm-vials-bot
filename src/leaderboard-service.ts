@@ -206,6 +206,8 @@ export class LeaderboardService {
       leaderboardMessageId,
     );
 
+    console.log('Leaderboard message: ', leaderboardMsg);
+
     if (!leaderboard) {
       leaderboard = {
         id,
@@ -237,13 +239,20 @@ export class LeaderboardService {
     let msg: Message | null = null;
     try {
       msg = await channel.messages.fetch(leaderboardMessageId);
-    } catch {}
+    } catch {
+      console.log(
+        'Error fetching leaderboard message id: ',
+        leaderboardMessageId,
+      );
 
-    if (!msg) {
       // Create a new leaderboard message
       const placeholder = '```\nLeaderboard initializing...\n```';
       msg = await channel.send(placeholder);
     }
+
+    // if (!msg) {
+
+    // }
 
     return msg;
   }
