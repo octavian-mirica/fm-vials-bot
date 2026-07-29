@@ -133,7 +133,6 @@ class LeaderboardService {
         let leaderboard = this.data.leaderboards[id];
         const leaderboardMessageId = leaderboard?.messageId || '';
         const leaderboardMsg = await this.getLeaderboardMessageSafe(client, channelId, leaderboardMessageId);
-        console.log('Leaderboard message: ', leaderboardMsg);
         if (!leaderboard) {
             leaderboard = {
                 id,
@@ -149,6 +148,7 @@ class LeaderboardService {
             leaderboard.messageId = leaderboardMsg?.id || '';
             this.saveLeaderboards();
         }
+        console.log('Leaderboard message id: ', leaderboardMsg?.id, leaderboard);
         return leaderboard;
     }
     async getLeaderboardMessageSafe(client, channelId, leaderboardMessageId) {
@@ -156,19 +156,14 @@ class LeaderboardService {
         if (!channel) {
             return null;
         }
-        let msg = null;
         try {
-            msg = await channel.messages.fetch(leaderboardMessageId);
+            return await channel.messages.fetch(leaderboardMessageId);
         }
         catch {
-            console.log('Error fetching leaderboard message id: ', leaderboardMessageId);
             // Create a new leaderboard message
             const placeholder = '```\nLeaderboard initializing...\n```';
-            msg = await channel.send(placeholder);
+            return await channel.send(placeholder);
         }
-        // if (!msg) {
-        // }
-        return msg;
     }
     getLeaderboardTotal(leaderboard) {
         return (leaderboard.entries || []).reduce((total, entry) => total + entry.value, 0);
