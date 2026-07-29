@@ -102,7 +102,7 @@ function parseLeaderboard(text) {
 }
 function buildLeaderboardEmbed(entries) {
     const sorted = [...entries].sort((a, b) => b.value - a.value);
-    const USER_WIDTH = 26;
+    const USER_WIDTH = 20;
     const VALUE_WIDTH = 6;
     let totalValue = 0;
     const rows = [];
