@@ -182,7 +182,7 @@ class LeaderboardService {
         this.isDatabaseLoaded = true;
     }
     readDataFromFile() {
-        const leaderboardData = {
+        const database = {
             allowedChannels: {},
             leaderboards: {},
         };
@@ -190,7 +190,7 @@ class LeaderboardService {
             const raw = fs_1.default.readFileSync(this.filePath, 'utf8');
             const data = JSON.parse(raw);
             Object.keys(data.allowedChannels || {}).forEach((id) => {
-                leaderboardData.allowedChannels[id] = data.allowedChannels[id];
+                database.allowedChannels[id] = data.allowedChannels[id];
             });
             Object.keys(data.leaderboards || {}).forEach((id) => {
                 const leaderboardData = data.leaderboards[id] || {};
@@ -213,14 +213,14 @@ class LeaderboardService {
                     leaderboard.entries.push(leaderboardEntry);
                 });
                 this.sortLeaderboardByValueDesc(leaderboard);
-                leaderboardData.leaderboards[id] = leaderboard;
+                database.leaderboards[id] = leaderboard;
             });
         }
         catch (err) {
             console.log('Error reading database: ', err);
-            return leaderboardData;
+            return database;
         }
-        return leaderboardData;
+        return database;
     }
     saveLeaderboards() {
         clearTimeout(this.saveTimeout);

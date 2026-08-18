@@ -271,7 +271,7 @@ export class LeaderboardService {
   }
 
   private readDataFromFile(): LeaderboardData {
-    const leaderboardData: LeaderboardData = {
+    const database: LeaderboardData = {
       allowedChannels: {},
       leaderboards: {},
     };
@@ -281,7 +281,7 @@ export class LeaderboardService {
       const data = JSON.parse(raw);
 
       Object.keys(data.allowedChannels || {}).forEach((id) => {
-        leaderboardData.allowedChannels[id] = data.allowedChannels[id];
+        database.allowedChannels[id] = data.allowedChannels[id];
       });
 
       Object.keys(data.leaderboards || {}).forEach((id) => {
@@ -308,14 +308,14 @@ export class LeaderboardService {
         });
 
         this.sortLeaderboardByValueDesc(leaderboard);
-        leaderboardData.leaderboards[id] = leaderboard;
+        database.leaderboards[id] = leaderboard;
       });
     } catch (err) {
       console.log('Error reading database: ', err);
-      return leaderboardData;
+      return database;
     }
 
-    return leaderboardData;
+    return database;
   }
 
   private saveLeaderboards() {
