@@ -202,7 +202,7 @@ class LeaderboardService {
                     id: id,
                     entries: [],
                 };
-                (leaderboardData.entries || []).foreach((entry) => {
+                (leaderboardData.entries || []).forEach((entry) => {
                     const leaderboardEntry = {
                         userId: entry.userId,
                         username: entry.username,

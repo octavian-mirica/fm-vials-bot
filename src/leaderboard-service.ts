@@ -296,7 +296,7 @@ export class LeaderboardService {
           entries: [],
         };
 
-        (leaderboardData.entries || []).foreach((entry: any) => {
+        ((leaderboardData.entries as any[]) || []).forEach((entry: any) => {
           const leaderboardEntry: LeaderboardEntry = {
             userId: entry.userId,
             username: entry.username,
