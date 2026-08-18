@@ -178,7 +178,6 @@ class LeaderboardService {
     loadData() {
         this.ensureDataFolderExists();
         this.data = this.readDataFromFile();
-        console.log('Database loaded!', this.data);
         this.isDatabaseLoaded = true;
     }
     readDataFromFile() {
@@ -194,7 +193,6 @@ class LeaderboardService {
             });
             Object.keys(data.leaderboards || {}).forEach((id) => {
                 const leaderboardData = data.leaderboards[id] || {};
-                console.log('Leaderboard data: ', leaderboardData);
                 const leaderboard = {
                     guildId: leaderboardData.guildId,
                     channelId: leaderboardData.channelId,

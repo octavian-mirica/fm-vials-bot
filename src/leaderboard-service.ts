@@ -266,7 +266,6 @@ export class LeaderboardService {
   private loadData() {
     this.ensureDataFolderExists();
     this.data = this.readDataFromFile();
-    console.log('Database loaded!', this.data);
     this.isDatabaseLoaded = true;
   }
 
@@ -286,7 +285,6 @@ export class LeaderboardService {
 
       Object.keys(data.leaderboards || {}).forEach((id) => {
         const leaderboardData = data.leaderboards[id] || {};
-        console.log('Leaderboard data: ', leaderboardData);
 
         const leaderboard: Leaderboard = {
           guildId: leaderboardData.guildId,
