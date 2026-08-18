@@ -10,6 +10,7 @@ const path_1 = __importDefault(require("path"));
 class LeaderboardService {
     data = { allowedChannels: {}, leaderboards: {} };
     saveTimeout;
+    isDatabaseLoaded = false;
     // Path inside dist/
     dataDir = path_1.default.join(__dirname, 'data');
     filePath = path_1.default.join(this.dataDir, 'leaderboards.json');
@@ -21,7 +22,9 @@ class LeaderboardService {
         return this.data;
     }
     async updateLeaderboard(client, msg) {
-        console.log(msg);
+        if (!this.isDatabaseLoaded) {
+            return;
+        }
         const guildId = msg.guildId || '';
         const channelId = msg.channelId;
         const userId = msg.author.id;
@@ -116,13 +119,13 @@ class LeaderboardService {
             // Delete warning after 5 seconds
             setTimeout(() => {
                 warning.delete().catch(() => { });
-            }, 3000);
+            }, 2000);
             return null;
         }
         // Always delete the user message
         setTimeout(() => {
             msg.delete().catch(() => { });
-        }, 4000);
+        }, 3000);
         return value;
     }
     isChannelAllowed(guildId, channelId) {
@@ -131,7 +134,6 @@ class LeaderboardService {
     async getLeaderboardSafe(client, guildId, channelId) {
         const id = this.leaderboardId(guildId, channelId);
         let leaderboard = this.data.leaderboards[id];
-        // console.log('Get leaderboard safe: ', leaderboard.messageId, leaderboard);
         if (!leaderboard) {
             leaderboard = {
                 id,
@@ -176,6 +178,8 @@ class LeaderboardService {
     loadData() {
         this.ensureDataFolderExists();
         this.data = this.readDataFromFile();
+        console.log('Database loaded!');
+        this.isDatabaseLoaded = true;
     }
     readDataFromFile() {
         const leaderboardData = {

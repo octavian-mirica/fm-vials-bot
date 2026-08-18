@@ -25,6 +25,7 @@ export interface LeaderboardData {
 export class LeaderboardService {
   private data: LeaderboardData = { allowedChannels: {}, leaderboards: {} };
   private saveTimeout: any;
+  private isDatabaseLoaded = false;
 
   // Path inside dist/
   private dataDir = path.join(__dirname, 'data');
@@ -40,7 +41,9 @@ export class LeaderboardService {
   }
 
   async updateLeaderboard(client: Client, msg: Message) {
-    console.log(msg);
+    if (!this.isDatabaseLoaded) {
+      return;
+    }
 
     const guildId = msg.guildId || '';
     const channelId = msg.channelId;
@@ -175,14 +178,14 @@ export class LeaderboardService {
       // Delete warning after 5 seconds
       setTimeout(() => {
         warning.delete().catch(() => {});
-      }, 3000);
+      }, 2000);
       return null;
     }
 
     // Always delete the user message
     setTimeout(() => {
       msg.delete().catch(() => {});
-    }, 4000);
+    }, 3000);
 
     return value;
   }
@@ -199,8 +202,6 @@ export class LeaderboardService {
     const id = this.leaderboardId(guildId, channelId);
 
     let leaderboard = this.data.leaderboards[id];
-
-    // console.log('Get leaderboard safe: ', leaderboard.messageId, leaderboard);
 
     if (!leaderboard) {
       leaderboard = {
@@ -264,8 +265,9 @@ export class LeaderboardService {
 
   private loadData() {
     this.ensureDataFolderExists();
-
     this.data = this.readDataFromFile();
+    console.log('Database loaded!');
+    this.isDatabaseLoaded = true;
   }
 
   private readDataFromFile(): LeaderboardData {
