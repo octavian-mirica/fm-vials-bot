@@ -194,6 +194,7 @@ class LeaderboardService {
             });
             Object.keys(data.leaderboards || {}).forEach((id) => {
                 const leaderboardData = data.leaderboards[id] || {};
+                console.log('Leaderboard data: ', leaderboardData);
                 const leaderboard = {
                     guildId: leaderboardData.guildId,
                     channelId: leaderboardData.channelId,
@@ -215,7 +216,8 @@ class LeaderboardService {
                 leaderboardData.leaderboards[id] = leaderboard;
             });
         }
-        catch {
+        catch (err) {
+            console.log('Error reading database: ', err);
             return leaderboardData;
         }
         return leaderboardData;

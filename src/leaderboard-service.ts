@@ -286,6 +286,7 @@ export class LeaderboardService {
 
       Object.keys(data.leaderboards || {}).forEach((id) => {
         const leaderboardData = data.leaderboards[id] || {};
+        console.log('Leaderboard data: ', leaderboardData);
 
         const leaderboard: Leaderboard = {
           guildId: leaderboardData.guildId,
@@ -309,7 +310,8 @@ export class LeaderboardService {
         this.sortLeaderboardByValueDesc(leaderboard);
         leaderboardData.leaderboards[id] = leaderboard;
       });
-    } catch {
+    } catch (err) {
+      console.log('Error reading database: ', err);
       return leaderboardData;
     }
 
