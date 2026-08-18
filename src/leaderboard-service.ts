@@ -266,7 +266,7 @@ export class LeaderboardService {
   private loadData() {
     this.ensureDataFolderExists();
     this.data = this.readDataFromFile();
-    console.log('Database loaded!');
+    console.log('Database loaded!', this.data);
     this.isDatabaseLoaded = true;
   }
 
